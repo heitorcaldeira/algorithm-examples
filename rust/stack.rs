@@ -82,5 +82,5 @@ fn main() {
     println!("Size: {}, Data: {:?}", stack.size, stack.head);
 
     let peek = stack.peek();
-    println!("Size: {}, Peeked: {:?}", stack.size, peek);
+    println!("Size: {}, Peeked: {}", stack.size, peek.unwrap());
 }
