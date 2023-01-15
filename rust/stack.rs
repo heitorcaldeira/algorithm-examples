@@ -1,86 +1,41 @@
-use std::mem;
-
-#[derive(Debug)]
-enum Link<T> {
-    Empty,
-    More(Box<Node<T>>),
-}
-
 #[derive(Debug)]
 struct Node<T> {
     data: T,
-    next: Link<T>,
+    next: Option<Box<Node<T>>>,
 }
 
-struct LinkedList<T> {
-    size: u64,
-    head: Link<T>,
+#[derive(Debug)]
+pub struct LinkedList<T> {
+    head: Option<Box<Node<T>>>,
+    size: u32,
 }
 
-trait Stack<T> {
-    fn new() -> Self;
-    fn push(&mut self, data: T);
-    fn pop(&mut self) -> Option<T>;
-    fn size(&self) -> u64;
-    fn peek(&mut self) -> Option<T>;
-}
+impl<T> LinkedList<T> {
+    pub fn new() -> Self {
+        LinkedList {
+            head: None,
+            size: 0,
+        }
+    }
 
-impl<T> Stack<T> for LinkedList<T> {
-    fn push(&mut self, data: T) {
-        let node = Box::new(Node {
+    pub fn push(&mut self, data: T) {
+        let new = Some(Box::new(Node {
             data,
-            next: mem::replace(&mut self.head, Link::Empty),
-        });
+            next: self.head.take(),
+        }));
 
-        self.head = Link::More(node);
+        self.head = new;
         self.size += 1;
     }
 
-    fn pop(&mut self) -> Option<T> {
-        match mem::replace(&mut self.head, Link::Empty) {
-            Link::Empty => None,
-            Link::More(node) => {
-                self.head = node.next;
-                self.size -= 1;
-                Some(node.data)
-            }
-        }
+    pub fn pop(&mut self) -> Option<T> {
+        self.head.take().map(|node| {
+            self.head = node.next;
+            node.data
+        })
     }
 
-    fn peek(&mut self) -> Option<T> {
-        match mem::replace(&mut self.head, Link::Empty) {
-            Link::Empty => None,
-            Link::More(node) => {
-                Some(node.data)
-            }
-        }
+    pub fn peek(&mut self) -> Option<&T> {
+        self.head.as_mut().map(|node| &node.data)
     }
-
-    fn new() -> Self {
-        LinkedList {
-            size: 0,
-            head: Link::Empty,
-        }
-    }
-
-    fn size(&self) -> u64 {
-        self.size
-    }
-}
-
-fn main() {
-    let mut stack: LinkedList<u64> = Stack::new();
-    stack.push(10);
-    stack.push(20);
-    stack.push(30);
-    println!("Size: {}, Data: {:?}", stack.size, stack.head);
-
-    let data = stack.pop();
-    println!("Size: {}, Popped: {}", stack.size, data.unwrap());
-
-    stack.push(40);
-    println!("Size: {}, Data: {:?}", stack.size, stack.head);
-
-    let peek = stack.peek();
-    println!("Size: {}, Peeked: {}", stack.size, peek.unwrap());
 }
